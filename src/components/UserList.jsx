@@ -1,20 +1,19 @@
-import UserItem from "./UserItem"
 
-function UserList({ users, onEdit, onDelete }) {
-  if (users.length === 0) return <p>Không có người dùng</p>
+function UserList({onEdit, onDelete, users}){
+    return(
+        <>
+            <h3>Danh sách người dùng</h3>
 
-  return (
-    <ul>
-      {users.map(u => (
-        <UserItem
-          key={u.id}
-          user={u}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
-      ))}
-    </ul>
-  )
+            {users.length === 0 && (<p>Chưa có người dùng nào</p>)}
+
+            {users.map(u => (
+                <div key={u.id}>
+                    {u.name} | {u.email} | {u.role}
+                    <button onClick={() => onEdit(u)}>Sửa</button>
+                    <button onClick={() => onDelete(u.id)}>Xóa</button>
+                </div>
+            ))}
+        </>
+    )
 }
-
 export default UserList

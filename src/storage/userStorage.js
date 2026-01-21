@@ -1,4 +1,4 @@
-export const STORAGE_KEY = "users"
+const STORAGE_KEY = "ListUser"
 
 export function getAllUsers(){
     const data = localStorage.getItem(STORAGE_KEY)
@@ -6,22 +6,23 @@ export function getAllUsers(){
 }
 
 export function addUser(user){
-    const users = getAllUsers()
-    users.push(user)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(users))
+    const listUser = getAllUsers()
+    listUser.push(user)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(listUser))
 }
 
 export function updateUser(updateUser){
-    const users = getAllUsers().map(
-        u => u.id === updateUser.id ? updateUser : u
+    const listUser = getAllUsers().map(
+        list => list.id === updateUser.id ? updateUser : list
     )
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(users))
-    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(listUser))
 }
 
-export function removeUser(id){
-    const users = getAllUsers().filter(u => u.id !== id)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(users))
+export  function removeUser(id){
+    const listUser = getAllUsers().filter(
+        list => list.id !== id
+    )
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(listUser))
 }
 
 export function clearUsers(){

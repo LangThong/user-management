@@ -1,92 +1,84 @@
 import { useState } from "react"
-import {
-  getAllUsers,
-  addUser,
-  updateUser,
-  removeUser,
-  clearUsers
-} from "./storage/userStorage"
-
+import { addUser, clearUsers, getAllUsers, removeUser, updateUser } from "./storage/userStorage"
 import UserForm from "./components/UserForm"
-import SearchBar from "./components/SearchBar"
 import UserList from "./components/UserList"
 
-function App() {
-  const [users, setUsers] = useState(() => getAllUsers()) //Chỉ đọc storage 1 lần khi load app
-  const [search, setSearch] = useState("")
-  const [editingUser, setEditingUser] = useState(null)
+function App(){
+    const [editingUser, setEditingUser] = useState(null)
+    const [users, setUsers] = useState(() => getAllUsers())
+    const [search, setSearch] = useState("")
+    const [sortOrder, setSortOrder] = useState("")
 
-  const handleSubmit = (data) => {
-    if (editingUser) {
-      const updated = { ...editingUser, ...data }
-      updateUser(updated)
-      setUsers(prev =>
-        prev.map(u => (u.id === updated.id ? updated : u))
-      )
-      setEditingUser(null) // thoát chế độ edit
-    } else {
-      const newUser = { id: Date.now(), ...data }
-      addUser(newUser)
-      setUsers(prev => [...prev, newUser]) // ạo mảng mới gồm tất cả người dùng cũ + người dùng mới ở cuối.
+    const handleSubmit = (userData) =>{
+        if(editingUser){
+            const updated = {...editingUser, ...userData}
+            updateUser(updated)
+            setUsers(getAllUsers())
+
+            setEditingUser(null)
+        }else{
+            const newId = users.length ? users[users.length - 1].id + 1 : 1
+            const newUser = {id: newId, ...userData}
+            addUser(newUser)
+            setUsers(getAllUsers())
+        }
     }
-  }
+   
+    const handleDelete = (id) => {
+        if(confirm("Bạn có muốn xóa người dùng này không!!!")){
+            removeUser(id)
+            setUsers(getAllUsers())
+        }
+    }
+    const handleClearALl = () =>{
+        if(confirm("Xóa tất cả users ?")){
+            clearUsers()
+            setUsers([])
+        }
+    }
+    
+    const filteredUsers = users.filter(u => {
+        const keyword = search.toLowerCase()
+        return (
+            u.name.toLowerCase().includes(keyword) ||
+            u.email.toLowerCase().includes(keyword)
+        )
+    })
+    console.log("MẢNG USER ĐÃ ĐƯỢC LỌC",filteredUsers)
+    const displayUser = [...filteredUsers].sort((a, b) =>{
+        if(!sortOrder) return 0 // giữ nguyên thứ tự hiện tại
+        return sortOrder === "asc"
+                ? a.name.localeCompare(b.name)
+                : b.name.localeCompare(a.name)
+    })
 
-  const handleDelete = (id) => {
-    if (!window.confirm("Xóa user này?")) return
-    removeUser(id)
-    setUsers(prev => prev.filter(u => u.id !== id))
-  }
 
-  const handleClearAll = () => {
-    if (!window.confirm("Xóa tất cả user?")) return
-    clearUsers()
-    setUsers([])
-  }
-
-  const filteredUsers = users.filter(u =>
-    u.email.toLowerCase().includes(search.toLowerCase())
-  )
-
-  const sortAZ = () => {
-    setUsers(prev =>
-      [...prev].sort((a, b) => a.name.localeCompare(b.name))
+    return (
+        <> 
+            <h2>User-Management</h2>
+            <UserForm
+                key = {editingUser?.id || "new"}
+                editingUser = {editingUser}
+                onSubmit = {handleSubmit}
+                onCancel = { () => setEditingUser(null)}
+                users = {users}
+            />
+            <br></br>
+            <input
+                placeholder="Search Name or Email"
+                value={search}
+                onChange={(e) =>setSearch(e.target.value)}
+                style={{ marginRight: 8 }}
+            />
+            <button onClick={() => setSortOrder("asc")}>A–Z</button>
+            <button onClick={() => setSortOrder("desc")}>Z–A</button>
+            <button onClick={handleClearALl} style={{ marginLeft: 8 }}>Xóa tất cả</button>
+            <UserList
+                onEdit = {setEditingUser}
+                onDelete = {handleDelete}
+                users = {displayUser}
+            />
+        </>
     )
-  }
-
-  const sortZA = () => {
-    setUsers(prev =>
-      [...prev].sort((a, b) => b.name.localeCompare(a.name))
-    )
-  }
-
-  return (
-    <>
-      <h1>User Management</h1>
-
-      <UserForm
-        key={editingUser?.id || "new"}
-        editingUser={editingUser}
-        users={users}
-        onSubmit={handleSubmit}
-        onCancel={() => setEditingUser(null)}
-      />
-
-      <SearchBar
-        search={search}
-        onSearch={setSearch}
-      />
-
-      <button onClick={sortAZ}>Sort A–Z</button>
-      <button onClick={sortZA}>Sort Z–A</button>
-      <button onClick={handleClearAll}>Xóa tất cả</button>
-
-      <UserList
-        users={filteredUsers}
-        onEdit={setEditingUser}
-        onDelete={handleDelete}
-      />
-    </>
-  )
 }
-
 export default App
