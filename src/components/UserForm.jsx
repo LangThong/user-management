@@ -33,12 +33,10 @@ function UserForm ({editingUser, onSubmit, onCancel, users}){
 
         onSubmit({name, email, role})
 
-        if(!editingUser){
-            setName("")
-            setRole("")
-            setEmail("")
-            setError("")
-        }
+        setName("")
+        setRole("")
+        setEmail("")
+        setError("")
     }
 
     return(
@@ -73,7 +71,7 @@ function UserForm ({editingUser, onSubmit, onCancel, users}){
 
             {
                 editingUser && (
-                    <button onClick={onCancel}>Hủy</button>
+                    <button type="button" onClick={onCancel}>Hủy</button>
                 )
             }
         </form>
