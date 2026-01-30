@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { addUser, clearUsers, getAllUsers, removeUser, updateUser } from "./storage/userStorage"
 import UserForm from "./components/UserForm"
 import UserList from "./components/UserList"
@@ -9,9 +9,9 @@ function App() {
     const [users, setUsers] = useState(() => getAllUsers())
     const [search, setSearch] = useState("")
     const [sortOrder, setSortOrder] = useState("")
-    const [deleteId, setDeleteId] = useState(null)
+    
     const [openConfirm, setOpenConfirm] = useState(false)
-    const [confirmType, setConfirmType] = useState(null)
+    const confirmActionRef = useRef(null)
 
     const handleSubmit = (userData) => {
         if (editingUser) {
@@ -50,14 +50,13 @@ function App() {
             u.email.toLowerCase().includes(keyword)
         )
     })
-    console.log("MẢNG USER ĐÃ ĐƯỢC LỌC", filteredUsers)
+    
     const displayUser = [...filteredUsers].sort((a, b) => {
         if (!sortOrder) return 0 // giữ nguyên thứ tự hiện tại
         return sortOrder === "asc"
             ? a.name.localeCompare(b.name)
             : b.name.localeCompare(a.name)
     })
-
 
     return (
         <>
@@ -79,15 +78,20 @@ function App() {
             <button onClick={() => setSortOrder("asc")}>A–Z</button>
             <button onClick={() => setSortOrder("desc")}>Z–A</button>
             <button onClick={() => {
-                setConfirmType("delete-all")
+                confirmActionRef.current = () =>{
+                    clearUsers()
+                    setUsers([])
+                }
                 setOpenConfirm(true)
             }}
                 style={{ marginLeft: 8 }}>Xóa tất cả</button>
             <UserList
                 onEdit={setEditingUser}
                 onDelete={(id) => {
-                    setDeleteId(id)
-                    setConfirmType("delete-one")
+                    confirmActionRef.current = () =>{
+                        removeUser(id)
+                        setUsers(getAllUsers())
+                    }
                     setOpenConfirm(true)
                 }
                 }
@@ -96,23 +100,17 @@ function App() {
             <Confirm
                 open={openConfirm}
                 setOpen={setOpenConfirm}
-                title={
-                    confirmType === "delete-one"
-                        ? "Bạn có muốn xóa người dùng này không?"
-                        : "Xóa tất cả users?"
-                }
+                title="Bạn có chắc chắn không?"
                 onSubmit={() => {
-                    if (confirmType === "delete-one") {
-                        removeUser(deleteId)
-                        setUsers(getAllUsers())
-                    }
-                    if (confirmType === "delete-all") {
-                        clearUsers()
-                        setUsers([])
-                    }
+                    // chạy hành động đã lưu
+                    confirmActionRef.current?.()
+                    console.log("Tr", confirmActionRef.current)
+                    confirmActionRef.current = null
+                    console.log("sau", confirmActionRef.current)
+
                 }}
                 onCancel={() => {
-                   setDeleteId(null)
+                   confirmActionRef.current = null
                 }}
             />
 
